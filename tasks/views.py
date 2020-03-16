@@ -1,11 +1,25 @@
 from django.shortcuts import render, get_object_or_404,redirect
+from django.core.paginator import Paginator
 from .models import Task
 from .forms import TaskForm
 from django.contrib import messages
 
 # Create your views here.
 def taskList(request):
-    tasks = Task.objects.all().order_by('-created_at')
+    tasks_list = Task.objects.all().order_by('-created_at')
+
+    search = request.GET.get('search')
+
+    if search:
+        tasks = Task.objects.filter(title__icontains=search)
+    else:
+        tasks_list = Task.objects.all().order_by('-created_at')
+
+        paginator = Paginator(tasks_list, 3)
+
+        page = request.GET.get('page')
+        tasks = paginator.get_page(page)
+        
     return render(request, 'tasks/list.html', {'tasks':tasks})
 
 def taskView(request, id):
